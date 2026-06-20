@@ -16,7 +16,7 @@ struct Trade {
 };
 
 inline std::ostream & operator<<(std::ostream & str,const Trade & t) {
-    str << "FILL " << t.quantity << " @ " << t.fill_price;
+    str << "FILL " << "buy#" << t.buy_id << ", sell#" << t.sell_id << t.quantity << " @ " << t.fill_price;
     return str;
 }
 
