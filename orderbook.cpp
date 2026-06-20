@@ -19,7 +19,29 @@ std::vector<Trade> OrderBook::add_order(Order order) {
 }
 
 void OrderBook::print_book() const {
-    std::cout << "hey\n";
+    std::cout << "==== ORDER BOOK ====\n";
+
+    std::cout << "==== ASKS ====\n";
+    
+    for (auto const& [price, orders] : asks_) {
+        std::cout << "$" << price << " : ";
+        int total = 0;
+        for (auto const& o : orders) {
+            total += o.quantity;
+        }
+        std::cout << "quantity=" << total << "\n";
+    }
+
+    std::cout << "==== BIDS ====\n";
+    
+    for (auto const& [price, orders] : bids_) {
+        std::cout << "$" << price << " : ";
+        int total = 0;
+        for (auto const& o : orders) {
+            total += o.quantity;
+        }
+        std::cout << "quantity=" << total << "\n";
+    }
 }
 
 std::optional<double> OrderBook::best_bid() const {
