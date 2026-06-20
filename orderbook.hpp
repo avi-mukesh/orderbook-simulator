@@ -6,7 +6,7 @@
 #include <map>
 #include <deque>
 #include <functional> // for std::greater
-#include <cstdint>
+#include <cstdint> // for uint64_t
 
 struct Trade {
     uint64_t buy_id;
@@ -25,6 +25,7 @@ public:
     std::vector<Trade> add_order(Order order);
     double spread() const;
     void print_book() const;
+    // the const at the end means the method promises not to modify any member variables of the class
     std::optional<double> best_bid() const;
     std::optional<double> best_ask() const;
     const std::vector<Trade>& trade_log() const {return trade_log_; }
