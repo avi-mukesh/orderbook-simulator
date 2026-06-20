@@ -18,7 +18,7 @@ struct Order {
             id(id), price(price), side(side), quantity(quantity), symbol(std::move(symbol)) {}
 };
 
-std::ostream& operator<<(std::ostream & str, Order const & order) {
+inline std::ostream& operator<<(std::ostream & str, Order const & order) {
     str << "ID: " << order.id << " Price: " << order.price;
     return str;
 }

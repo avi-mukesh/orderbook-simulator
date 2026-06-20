@@ -5,7 +5,8 @@
 #include <optional>
 #include <map>
 #include <deque>
-#include <functional>
+#include <functional> // for std::greater
+#include <cstdint>
 
 struct Trade {
     uint64_t buy_id;
@@ -14,6 +15,11 @@ struct Trade {
     int quantity;
 };
 
+inline std::ostream & operator<<(std::ostream & str,const Trade & t) {
+    str << "FILL " << t.quantity << " @ " << t.fill_price;
+    return str;
+}
+
 class OrderBook {
 public: 
     std::vector<Trade> add_order(Order order);
@@ -21,10 +27,10 @@ public:
     void print_book() const;
     std::optional<double> best_bid() const;
     std::optional<double> best_ask() const;
-    const std::vector<Trade>& trade_log() const {return trade_log_; };
+    const std::vector<Trade>& trade_log() const {return trade_log_; }
 
-
-    OrderBook(std::string symbol) : symbol_(std::move(symbol)) {};
+    // without explicit, e.g. OrderBook book = "BTCUSD" would be allowed
+    explicit OrderBook(std::string symbol);
 
 private:
     uint64_t next_id_ = 0;
@@ -35,5 +41,5 @@ private:
     std::map<double, std::deque<Order>, std::greater<double>> bids_;
     std::map<double, std::deque<Order>> asks_;
 
-    std::vector<Trade>& match(Order& incomingOrder);
+    std::vector<Trade> match(Order& incomingOrder);
 };
