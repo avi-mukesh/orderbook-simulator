@@ -16,9 +16,10 @@ std::vector<Trade> OrderBook::add_order(Order order) {
         double p = order.price;
         if(order.side==Side::BUY) {
             // if key p doesn't exist, it is auto created
-            bids_[p].push_back(order);
+            // also, using std::move here to avoid copying the whole Order struct
+            bids_[p].push_back(std::move(order));
         } else {
-            asks_[p].push_back(order);
+            asks_[p].push_back(std::move(order));
         }
     }
 
@@ -91,6 +92,8 @@ void OrderBook::print_book() const {
         std::cout << "quantity=" << total << "\n";
     }
 
+    std::cout << "----- Spread: $" << this->spread() << " ----\n";
+
     std::cout << "==== BIDS ====\n";
     
     for (auto const& [price, orders] : bids_) {
@@ -117,4 +120,16 @@ std::optional<double> OrderBook::best_ask() const {
         return best_it->first;
     }
     return std::nullopt;
+}
+
+double OrderBook::spread() const {
+    if (asks_.empty() || bids_.empty()) {
+        return 0.0;
+    }
+
+    // best_ask and best_bid both return std::optional<double>
+    // so the minus '-' operator isn't defined on them
+    // need to dereference using *
+    // alternative is to to do .value()
+    return *best_ask() - *best_bid();
 }
