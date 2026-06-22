@@ -7,6 +7,11 @@ OrderBook::OrderBook(std::string symbol) : symbol_(std::move(symbol)) {}
 
 
 std::vector<Trade> OrderBook::add_order(Order order) {
+    if(order.symbol != symbol_) {
+        std::cerr << "\nThis order book is for " << symbol_ << ". " << order.symbol << " is not supported.\n";
+        return {};
+    }
+
     order.id = ++next_id_;
 
     std::vector<Trade> fills = match(order);

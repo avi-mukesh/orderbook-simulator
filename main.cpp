@@ -32,6 +32,8 @@ int main() {
     book.add_order(Order(900, Side::SELL, 10, "BTCUSD"));
     book.print_book();
 
+    book.add_order(Order(1000, Side::BUY, 1, "ETHUSD"));
+    
     // a market buy order that cleans all the asks
     book.add_order(Order(Side::BUY, 6, "BTCUSD"));
     book.print_book();
