@@ -32,6 +32,14 @@ int main() {
     book.add_order(Order(900, Side::SELL, 10, "BTCUSD"));
     book.print_book();
 
+    // a market buy order that cleans all the asks
+    book.add_order(Order(Side::BUY, 6, "BTCUSD"));
+    book.print_book();
+
+    // a market sell order that cleans all the bids
+    book.add_order(Order(Side::SELL, 4, "BTCUSD"));
+    book.print_book();
+
 
     auto& trades = book.trade_log();
     std::cout << "\n==== TRADES ==== \n";

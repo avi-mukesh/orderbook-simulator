@@ -11,8 +11,9 @@ std::vector<Trade> OrderBook::add_order(Order order) {
 
     std::vector<Trade> fills = match(order);
 
-    // rest order only if it has quantity left over after matching
-    if (order.quantity > 0) {
+    // rest order only if it's a limit order that has quantity left over after matching
+    // market orders don't rest
+    if (order.type==OrderType::LIMIT && order.quantity > 0) {
         double p = order.price;
         if(order.side==Side::BUY) {
             // if key p doesn't exist, it is auto created
@@ -38,9 +39,11 @@ std::vector<Trade> OrderBook::match(Order& incomingOrder) {
             auto best_it = opposite.begin();
             double best_price = best_it->first;
 
-            if (is_buy && best_price > incomingOrder.price
-            || !is_buy && best_price < incomingOrder.price) {
-                break;
+            if (incomingOrder.type==OrderType::LIMIT) {
+                if (is_buy && best_price > incomingOrder.price
+                || !is_buy && best_price < incomingOrder.price) {
+                    break;
+                }
             }
 
             auto& opposite_orders = best_it->second;
