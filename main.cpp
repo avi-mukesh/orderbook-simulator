@@ -1,5 +1,6 @@
 #include "orderbook.hpp"
 #include <iostream>
+#include <iomanip> // for std::setprecision
 
 int main() {
     auto book = OrderBook("BTCUSD");
@@ -44,10 +45,24 @@ int main() {
 
 
     auto& trades = book.trade_log();
+
+    int total_quantity = 0;
+    double total_notional = 0;
+
     std::cout << "\n==== TRADES ==== \n";
     for (const auto& t : trades) {
         std::cout << t << "\n";
+        total_quantity += t.quantity;
+        total_notional += t.quantity * t.fill_price;
     }
+
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << "\n===Some stats===\n";
+    std::cout << "Quantity: " << total_quantity << " units\n";
+    std::cout << "Notional: $" << total_notional << "\n";
+    std::cout << "VWAP: ";
+    if (total_notional > 0) std::cout << "$" << total_notional/total_quantity << "\n";
+    else std::cout << "N/A - no trades made\n";
 
     return 0;
 }
