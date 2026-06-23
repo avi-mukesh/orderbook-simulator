@@ -11,7 +11,7 @@ enum class Side {BUY, SELL};
 // but this would mean e.g. add_order(Order order) wouldn't work, since it would strip out the extra price field
 // limit orders are the only ones that rest on the book anyway
 // market orders don't rest if not filled
-enum class OrderType {LIMIT, MARKET};
+enum class OrderType {LIMIT, MARKET, IOC};
 
 struct Order {
     uint64_t id = 0;
@@ -20,6 +20,13 @@ struct Order {
     int quantity;
     std::string symbol;
     OrderType type;
+
+    Order(OrderType type, double price, Side side, int quantity, std::string symbol) : 
+            price(price), type(type), side(side), quantity(quantity), symbol(std::move(symbol)) {
+                if (type == OrderType::MARKET) {
+                    throw std::invalid_argument("Use the constructor for market orders");
+                }
+            }
 
     Order(double price, Side side, int quantity, std::string symbol) : 
             price(price), type(OrderType::LIMIT), side(side), quantity(quantity), symbol(std::move(symbol)) {}

@@ -18,6 +18,7 @@ uint64_t OrderBook::add_order(Order order) {
 
     // rest order only if it's a limit order that has quantity left over after matching
     // market orders don't rest
+    // IOC orders don't rest
     if (order.type==OrderType::LIMIT && order.quantity > 0) {
         double p = order.price;
         Side s = order.side;
@@ -80,7 +81,7 @@ std::vector<Trade> OrderBook::match(Order& incomingOrder) {
             auto best_it = opposite.begin();
             double best_price = best_it->first;
 
-            if (incomingOrder.type==OrderType::LIMIT) {
+            if (incomingOrder.type==OrderType::LIMIT || incomingOrder.type==OrderType::IOC) {
                 if (is_buy && best_price > incomingOrder.price
                 || !is_buy && best_price < incomingOrder.price) {
                     break;

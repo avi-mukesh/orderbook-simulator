@@ -71,6 +71,17 @@ int main() {
     book.print_book();
 
 
+    // testing IOC (immediate or cancel) order
+    // after this sell order is rested, on the book there are two price levels on the asks book: $1100 (qty=4) and $1200 (qty=4)
+    // IOC buy order $1100 (qty=8) will only fill if price is equal to or better than what we specify (just like normal limit orders about)
+    // BUT, if unfilled, it won't rest on the book (like a market order)
+    // so in this case, the IOC will only fill the qty=4 at the $1100 level, and the unfilled part is discarded
+    book.add_order(Order(1200, Side::SELL, 4, "BTCUSD"));
+    book.print_book();
+    book.add_order(Order(OrderType::IOC, 1100, Side::BUY, 8, "BTCUSD"));
+    book.print_book();
+
+
     auto& trades = book.trade_log();
 
     int total_quantity = 0;
