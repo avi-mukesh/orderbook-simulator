@@ -46,10 +46,28 @@ int main() {
 
     // can cancel a resting order by specifying it's id
     book.add_order(Order(1100, Side::SELL, 4, "BTCUSD"));
-    uint64_t order_to_cancel_id = book.add_order(Order(1050, Side::SELL, 3, "BTCUSD"));
+    uint64_t order_id = book.add_order(Order(1050, Side::SELL, 3, "BTCUSD"));
     book.print_book();
     
-    book.cancel_order(order_to_cancel_id);
+    bool cancelled = book.cancel_order(order_id);
+    std::cout << (cancelled ? "\nCancelled order" : "\nUnable to cancel order") << " with id: " << order_id << "\n";
+    book.print_book();
+    
+    // trying to cancel the same order again
+    cancelled = book.cancel_order(order_id);
+    std::cout << (cancelled ? "\nCancelled order" : "\nUnable to cancel order") << " with id: " << order_id << "\n";
+    
+
+    // this order would've filled if the previous one wasn't cancelled, so now it just rests
+    book.add_order(Order(1050, Side::BUY, 4, "BTCUSD"));
+    book.print_book();
+    
+    
+    // trying to cancel an already filled order
+    order_id = book.add_order(Order(1000, Side::SELL, 4, "BTCUSD"));
+    book.add_order(Order(1000, Side::BUY, 4, "BTCUSD"));
+    cancelled = book.cancel_order(order_id);
+    std::cout << (cancelled ? "\nCancelled order" : "\nUnable to cancel order") << " with id: " << order_id << "\n";
     book.print_book();
 
 
