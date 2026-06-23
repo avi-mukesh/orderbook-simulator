@@ -8,9 +8,9 @@ Run using `./main`
 
 Supports limit orders, market orders, and IOC orders.
 
-To place a limit order, create an `Order` with a price. Fills only at prices equal to or better than the limit price, and the remaining order rests on the book.
-To place a market order, create an `Order` with no price. Fills at any price and doesn't rest on the book.
-To place an IOC order, create an `Order` with a price, and type `OrderType::IOC`. Fills like limit orders, but if unfilled, gets discarded like market orders.
+- To place a limit order, create an `Order` with a price. Fills only at prices equal to or better than the limit price, and the remaining order rests on the book.
+- To place a market order, create an `Order` with no price. Fills at any price and doesn't rest on the book.
+- To place an IOC order, create an `Order` with a price, and type `OrderType::IOC`. Fills like limit orders, but if unfilled, gets discarded like market orders.
 
 Logs out a list of all trades that get executed.
 
