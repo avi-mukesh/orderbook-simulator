@@ -78,7 +78,17 @@ int main() {
     // so in this case, the IOC will only fill the qty=4 at the $1100 level, and the unfilled part is discarded
     book.add_order(Order(1200, Side::SELL, 4, "BTCUSD"));
     book.print_book();
-    book.add_order(Order(OrderType::IOC, 1100, Side::BUY, 8, "BTCUSD"));
+    
+    
+    // testing FOK (fill or kill) order
+    // at this stage, in bids we have only one level $1000 (qty=4)
+    // if we place a sell FOK order at $1000 (qty=6) then it won't fill at all (because quantity 2 would be left over)
+    // instead, it will be killed (cancelled) completely
+    book.add_order(Order(OrderType::FOK, 1000, Side::SELL, 6, "BTCUSD"));
+    book.print_book();
+
+    // this FOK order gets filled
+    book.add_order(Order(OrderType::FOK, 1000, Side::SELL, 4, "BTCUSD"));
     book.print_book();
 
 

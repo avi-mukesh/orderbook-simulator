@@ -14,11 +14,14 @@ uint64_t OrderBook::add_order(Order order) {
 
     order.id = ++next_id_;
 
+    // FOK orders don't rest (fill all or nothing)
+    if (order.type == OrderType::FOK && !can_fill_fully(order)) return order.id;
+
     std::vector<Trade> fills = match(order);
 
     // rest order only if it's a limit order that has quantity left over after matching
     // market orders don't rest
-    // IOC orders don't rest
+    // IOC orders don't rest (unfilled part gets discarded)
     if (order.type==OrderType::LIMIT && order.quantity > 0) {
         double p = order.price;
         Side s = order.side;
@@ -45,6 +48,44 @@ uint64_t OrderBook::add_order(Order order) {
     }
 
     return order.id;
+}
+
+// check for FOK (fill or kill) orders
+bool OrderBook::can_fill_fully(Order& incoming) {
+    auto check = [&](auto& opposite, bool is_buy) {
+        int quantity_to_fill = incoming.quantity;
+        auto opposite_it = opposite.begin();
+
+        while(quantity_to_fill > 0 && opposite_it != opposite.end()) {
+            double price = opposite_it->first;
+            auto& opposite_orders = opposite_it->second;
+
+            if (is_buy && price > incoming.price
+                || !is_buy && price < incoming.price) {
+                    break;
+                }
+
+            auto order_it = opposite_orders.begin();
+            
+            while(quantity_to_fill > 0 && order_it != opposite_orders.end()) {
+                int fill_quantity = std::min(quantity_to_fill, (*order_it).quantity);
+                quantity_to_fill -= fill_quantity;
+                
+                if (quantity_to_fill<=0) {
+                    return true;
+                }
+                order_it++;
+            }
+            opposite_it++;
+        }
+        return false;
+    };
+
+    if (incoming.side == Side::BUY) {
+        return check(asks_, true);
+    } else {
+        return check(bids_, false);
+    }
 }
 
 bool OrderBook::cancel_order(uint64_t order_id) {
@@ -81,11 +122,13 @@ std::vector<Trade> OrderBook::match(Order& incomingOrder) {
             auto best_it = opposite.begin();
             double best_price = best_it->first;
 
-            if (incomingOrder.type==OrderType::LIMIT || incomingOrder.type==OrderType::IOC) {
-                if (is_buy && best_price > incomingOrder.price
-                || !is_buy && best_price < incomingOrder.price) {
-                    break;
-                }
+            if (incomingOrder.type==OrderType::LIMIT
+                || incomingOrder.type==OrderType::IOC
+                || incomingOrder.type==OrderType::FOK) {
+                    if (is_buy && best_price > incomingOrder.price
+                    || !is_buy && best_price < incomingOrder.price) {
+                        break;
+                    }
             }
 
             auto& opposite_orders = best_it->second;

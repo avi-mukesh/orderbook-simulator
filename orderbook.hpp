@@ -52,4 +52,5 @@ private:
     std::unordered_map<uint64_t, OrderLocation> order_locations_by_id_;
 
     std::vector<Trade> match(Order& incomingOrder);
+    bool can_fill_fully(Order& order);
 };

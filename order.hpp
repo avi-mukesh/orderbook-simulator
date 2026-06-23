@@ -11,7 +11,7 @@ enum class Side {BUY, SELL};
 // but this would mean e.g. add_order(Order order) wouldn't work, since it would strip out the extra price field
 // limit orders are the only ones that rest on the book anyway
 // market orders don't rest if not filled
-enum class OrderType {LIMIT, MARKET, IOC};
+enum class OrderType {LIMIT, MARKET, IOC, FOK};
 
 struct Order {
     uint64_t id = 0;
