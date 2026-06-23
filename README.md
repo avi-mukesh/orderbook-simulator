@@ -1,9 +1,16 @@
 A simple order book simulator.
 
-Supports limit orders, and market orders.
+`main.cpp` is to demo the functionality.
 
-To place a limit order, create a `Order` with a price.
-TO place a market order, create a `Order` with no price.
+Compile using `g++ main.cpp orderbook.cpp -std=c++17 -o main`
+
+Run using `./main`
+
+Supports limit orders, market orders, and IOC orders.
+
+To place a limit order, create an `Order` with a price. Fills only at prices equal to or better than the limit price, and the remaining order rests on the book.
+To place a market order, create an `Order` with no price. Fills at any price and doesn't rest on the book.
+To place an IOC order, create an `Order` with a price, and type `OrderType::IOC`. Fills like limit orders, but if unfilled, gets discarded like market orders.
 
 Logs out a list of all trades that get executed.
 
