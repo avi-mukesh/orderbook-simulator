@@ -4,7 +4,7 @@
 #include <vector>
 #include <optional>
 #include <map>
-#include <deque>
+#include <list>
 #include <functional> // for std::greater
 #include <cstdint> // for uint64_t
 
@@ -20,9 +20,16 @@ inline std::ostream & operator<<(std::ostream & str,const Trade & t) {
     return str;
 }
 
+struct OrderLocation {
+    Side side;
+    double price_level;
+    std::list<Order>::iterator it;
+};
+
 class OrderBook {
 public: 
-    std::vector<Trade> add_order(Order order);
+    uint64_t add_order(Order order);
+    bool cancel_order(uint64_t order_id);
     double spread() const;
     void print_book() const;
     // the const at the end means the method promises not to modify any member variables of the class
@@ -38,9 +45,11 @@ private:
 
     std::vector<Trade> trade_log_;
     std::string symbol_;
-
-    std::map<double, std::deque<Order>, std::greater<double>> bids_;
-    std::map<double, std::deque<Order>> asks_;
+    
+    std::map<double, std::list<Order>, std::greater<double>> bids_;
+    std::map<double, std::list<Order>> asks_;
+    
+    std::unordered_map<uint64_t, OrderLocation> order_locations_by_id_;
 
     std::vector<Trade> match(Order& incomingOrder);
 };

@@ -42,6 +42,15 @@ int main() {
     // a market sell order that cleans all the bids
     book.add_order(Order(Side::SELL, 4, "BTCUSD"));
     book.print_book();
+    
+
+    // can cancel a resting order by specifying it's id
+    book.add_order(Order(1100, Side::SELL, 4, "BTCUSD"));
+    uint64_t order_to_cancel_id = book.add_order(Order(1050, Side::SELL, 3, "BTCUSD"));
+    book.print_book();
+    
+    book.cancel_order(order_to_cancel_id);
+    book.print_book();
 
 
     auto& trades = book.trade_log();

@@ -1,12 +1,12 @@
 #include "orderbook.hpp"
 #include <optional>
-#include <deque>
+#include <list>
 #include <algorithm>
+#include <iterator>
 
 OrderBook::OrderBook(std::string symbol) : symbol_(std::move(symbol)) {}
 
-
-std::vector<Trade> OrderBook::add_order(Order order) {
+uint64_t OrderBook::add_order(Order order) {
     if(order.symbol != symbol_) {
         std::cerr << "\nThis order book is for " << symbol_ << ". " << order.symbol << " is not supported.\n";
         return {};
@@ -20,20 +20,56 @@ std::vector<Trade> OrderBook::add_order(Order order) {
     // market orders don't rest
     if (order.type==OrderType::LIMIT && order.quantity > 0) {
         double p = order.price;
-        if(order.side==Side::BUY) {
+        Side s = order.side;
+        uint64_t id = order.id;
+        if(s==Side::BUY) {
             // if key p doesn't exist, it is auto created
             // also, using std::move here to avoid copying the whole Order struct
+            // trying to access e.g. order.symbol after the move does not work
             bids_[p].push_back(std::move(order));
         } else {
             asks_[p].push_back(std::move(order));
         }
+
+        OrderLocation location = OrderLocation();
+        location.side = s;
+        location.price_level = p;
+        location.it = std::prev(s==Side::BUY ? bids_[p].end() : asks_[p].end());
+        
+        order_locations_by_id_[id] = location;
     }
 
     for (const auto& f : fills) {
         trade_log_.push_back(f);
     }
 
-    return fills;
+    return order.id;
+}
+
+bool OrderBook::cancel_order(uint64_t order_id) {
+    auto it = order_locations_by_id_.find(order_id);
+
+    // if there is no OrderLocation associated with this order id
+    if (it == order_locations_by_id_.end()) {
+        return false;
+    }
+
+    // remove order from the appropriate map at the appropriate price
+    OrderLocation location = it->second;
+    auto& level = location.side == Side::BUY ? bids_[location.price_level] : asks_[location.price_level];
+    level.erase(location.it);
+    if (level.empty()) {
+        if (location.side == Side::BUY) {
+            bids_.erase(location.price_level);
+        } else {
+            asks_.erase(location.price_level);
+        }
+    }
+
+    // remove from the map of order id -> OrderLocation also
+    order_locations_by_id_.erase(order_id);
+
+    return true;
 }
 
 std::vector<Trade> OrderBook::match(Order& incomingOrder) {
@@ -67,6 +103,10 @@ std::vector<Trade> OrderBook::match(Order& incomingOrder) {
                 fills.push_back(t);
 
                 if (opposite_order.quantity==0) {
+                    // remove filled order from map of order id -> locations
+                    order_locations_by_id_.erase(opposite_order.id);
+
+                    // and remove filled order from book
                     opposite_orders.pop_front();
                 }
             }
