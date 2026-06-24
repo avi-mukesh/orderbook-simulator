@@ -1,5 +1,7 @@
 A simple order book simulator.
 
+# Main
+
 `main.cpp` is to demo the functionality.
 
 Compile using `g++ main.cpp orderbook.cpp -std=c++17 -o main`
@@ -16,3 +18,11 @@ Supports limit orders, market orders, IOC orders, and FOK orders.
 Logs out a list of all trades that get executed.
 
 It logs every executed trade, with the VWAP (Volume-Weighted Average Price) shown underneath.
+
+# Benchmark
+
+`benchmark.cpp` is a benchmark harness, to demo speed.
+
+Compile using `g++ benchmark.cpp orderbook.cpp -O2 -std=c++17 -o benchmark`
+
+Run using `./benchmark`
