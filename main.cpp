@@ -1,19 +1,24 @@
 #include "orderbook.hpp"
 #include <iostream>
 #include <iomanip> // for std::setprecision
+#include <chrono>
 
 int main() {
+    const auto start{std::chrono::high_resolution_clock::now()};
+    // some operations...
+    
+    
     auto book = OrderBook("BTCUSD");
-
+    
     book.add_order(Order(1000, Side::BUY, 5, "BTCUSD"));
     book.add_order(Order(900, Side::BUY, 2, "BTCUSD"));
     book.add_order(Order(850, Side::BUY, 3, "BTCUSD"));
     book.add_order(Order(700, Side::BUY, 1, "BTCUSD"));
-
+    
     book.add_order(Order(1200, Side::SELL, 3, "BTCUSD"));
     book.add_order(Order(1100, Side::SELL, 2, "BTCUSD"));
     book.add_order(Order(1070, Side::SELL, 3, "BTCUSD"));
-
+    
     // spread hasn't been crossed yet - no order gets filled
     book.print_book();
     
@@ -32,18 +37,18 @@ int main() {
     // this is what happens in low liquidity environments
     book.add_order(Order(900, Side::SELL, 10, "BTCUSD"));
     book.print_book();
-
+    
     book.add_order(Order(1000, Side::BUY, 1, "ETHUSD"));
     
     // a market buy order that cleans all the asks
     book.add_order(Order(Side::BUY, 6, "BTCUSD"));
     book.print_book();
-
+    
     // a market sell order that cleans all the bids
     book.add_order(Order(Side::SELL, 4, "BTCUSD"));
     book.print_book();
     
-
+    
     // can cancel a resting order by specifying it's id
     book.add_order(Order(1100, Side::SELL, 4, "BTCUSD"));
     uint64_t order_id = book.add_order(Order(1050, Side::SELL, 3, "BTCUSD"));
@@ -57,7 +62,7 @@ int main() {
     cancelled = book.cancel_order(order_id);
     std::cout << (cancelled ? "\nCancelled order" : "\nUnable to cancel order") << " with id: " << order_id << "\n";
     
-
+    
     // this order would've filled if the previous one wasn't cancelled, so now it just rests
     book.add_order(Order(1050, Side::BUY, 4, "BTCUSD"));
     book.print_book();
@@ -69,8 +74,8 @@ int main() {
     cancelled = book.cancel_order(order_id);
     std::cout << (cancelled ? "\nCancelled order" : "\nUnable to cancel order") << " with id: " << order_id << "\n";
     book.print_book();
-
-
+    
+    
     // testing IOC (immediate or cancel) order
     // after this sell order is rested, on the book there are two price levels on the asks book: $1100 (qty=4) and $1200 (qty=4)
     // IOC buy order $1100 (qty=8) will only fill if price is equal to or better than what we specify (just like normal limit orders about)
@@ -90,13 +95,17 @@ int main() {
     // this FOK order gets filled
     book.add_order(Order(OrderType::FOK, 1000, Side::SELL, 4, "BTCUSD"));
     book.print_book();
+    
 
-
+    const auto finish{std::chrono::high_resolution_clock::now()};
+    const std::chrono::duration<double> elapsed_seconds{finish - start};
+    std::cout << "\nElapsed seconds: " << elapsed_seconds.count() << "\n";
+    
     auto& trades = book.trade_log();
-
+    
     int total_quantity = 0;
     double total_notional = 0;
-
+    
     std::cout << "\n==== TRADES ==== \n";
     for (const auto& t : trades) {
         std::cout << t << "\n";
