@@ -1,13 +1,8 @@
 #include "orderbook.hpp"
 #include <iostream>
 #include <iomanip> // for std::setprecision
-#include <chrono>
 
-int main() {
-    const auto start{std::chrono::high_resolution_clock::now()};
-    // some operations...
-    
-    
+int main() {    
     auto book = OrderBook("BTCUSD");
     
     book.add_order(Order(1000, Side::BUY, 5, "BTCUSD"));
@@ -95,11 +90,6 @@ int main() {
     // this FOK order gets filled
     book.add_order(Order(OrderType::FOK, 1000, Side::SELL, 4, "BTCUSD"));
     book.print_book();
-    
-
-    const auto finish{std::chrono::high_resolution_clock::now()};
-    const std::chrono::duration<double> elapsed_seconds{finish - start};
-    std::cout << "\nElapsed seconds: " << elapsed_seconds.count() << "\n";
     
     auto& trades = book.trade_log();
     
