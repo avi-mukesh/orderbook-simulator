@@ -30,6 +30,8 @@ class OrderBook {
 public: 
     uint64_t add_order(Order order);
     bool cancel_order(uint64_t order_id);
+    uint64_t amend_order(uint64_t order_id, double new_price, int new_quantity);
+
     double spread() const;
     void print_book() const;
     // the const at the end means the method promises not to modify any member variables of the class

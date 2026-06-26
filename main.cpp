@@ -91,6 +91,35 @@ int main() {
     book.add_order(Order(OrderType::FOK, 1000, Side::SELL, 4, "BTCUSD"));
     book.print_book();
     
+    
+    // testing order updating - price change
+    book.add_order(Order(900, Side::BUY, 4, "BTCUSD"));
+    book.add_order(Order(950, Side::BUY, 2, "BTCUSD"));
+    order_id = book.add_order(Order(900, Side::BUY, 7, "BTCUSD"));
+    book.add_order(Order(850, Side::BUY, 1, "BTCUSD"));
+    book.print_book();
+    
+    std::cout << "\nid of order to amend: " << order_id << "\n";
+    order_id = book.amend_order(order_id, 800, 7);
+    std::cout << "\nid of order after amending: " << order_id << "\n";
+    book.print_book();
+
+
+    
+    // testing order updating - increase quantity (greedy, so readded to map to back of queue)
+    std::cout << "\nid of order to amend: " << order_id << "\n";
+    order_id = book.amend_order(order_id, 800, 10);
+    std::cout << "\nid of order after amending: " << order_id << "\n";
+    book.print_book();
+
+
+    // testing order updating - decrease quantity (not being greedy, so can stay in same place in queue)
+    std::cout << "\nid of order to amend: " << order_id << "\n";
+    order_id = book.amend_order(order_id, 800, 3);
+    std::cout << "\nid of order after amending: " << order_id << "\n";
+    book.print_book();
+
+    
     auto& trades = book.trade_log();
     
     int total_quantity = 0;

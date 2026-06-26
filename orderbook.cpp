@@ -114,6 +114,34 @@ bool OrderBook::cancel_order(uint64_t order_id) {
     return true;
 }
 
+uint64_t OrderBook::amend_order(uint64_t order_id, double new_price, int new_quantity) {
+    auto it = order_locations_by_id_.find(order_id);
+
+    // if there is no OrderLocation associated with this order id
+    if (it == order_locations_by_id_.end()) {
+        return 0;
+    }
+
+    OrderLocation location = it->second;
+    // grab order by reference, so we can modify it in-place
+    Order& order_to_amend = *location.it;
+
+    // nothing to update if price and quantity haven't changed
+    if (order_to_amend.price == new_price && order_to_amend.quantity == new_quantity) return true;
+
+    // if price is changed, then order belongs on new price level, so remove
+    // if new quantity is higher than current quantity, then it should be deprioritised so remove from list and readd at the end
+    // otherwise, the new quantity is lower, so we can keep the order's priority in the queue and just update it in-place
+    if (order_to_amend.price != new_price || order_to_amend.quantity < new_quantity) {
+        Order amended_order = Order(new_price, order_to_amend.side, new_quantity, order_to_amend.symbol);
+        cancel_order(order_id);
+        return add_order(amended_order);
+    } else {
+        order_to_amend.quantity = new_quantity;
+        return order_to_amend.id;
+    }
+}
+
 std::vector<Trade> OrderBook::match(Order& incomingOrder) {
     std::vector<Trade> fills;
     
