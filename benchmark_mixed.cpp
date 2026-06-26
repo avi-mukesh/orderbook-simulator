@@ -22,7 +22,6 @@ int main() {
     // set current time as random seed
     std::srand(std::time({}));
 
-    
     std::vector<int> possible_num_orders = {10, 100, 1000, 10000, 100000, 1000000, 10000000};
     std::map<int, double> time_taken;
     
@@ -39,6 +38,7 @@ int main() {
         // the actual benchmarking 
         const auto start{std::chrono::high_resolution_clock::now()};
         for (int i=0; i<num_orders; i++) {
+            // this is mixing buys and sells, so we are using add_order and match
             book.add_order(Order(prices[i], sides[i], quantities[i], "BTCUSD"));
         }
         const auto finish{std::chrono::high_resolution_clock::now()};
