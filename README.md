@@ -19,10 +19,26 @@ Logs out a list of all trades that get executed.
 
 It logs every executed trade, with the VWAP (Volume-Weighted Average Price) shown underneath.
 
-# Benchmark
+# Benchmarking
 
-`benchmark.cpp` is a benchmark harness, to demo speed.
+`benchmark_mixed.cpp` and `benchmark_insert.cpp` are used as benchmark harnesses, to demo speed.
 
-Compile using `g++ benchmark.cpp orderbook.cpp -O2 -std=c++17 -o benchmark`
+Compile using `g++ benchmark_mixed.cpp orderbook.cpp -O2 -std=c++17 -o benchmark_mixed`
 
-Run using `./benchmark`
+Run using `./benchmark_mixed`
+
+Compile using `g++ benchmark_insert.cpp orderbook.cpp -O2 -std=c++17 -o benchmark_insert`
+
+Run using `./benchmark_insert`
+
+`benchmark_insert` measures purely the `add_order` method for inserting orders all on one side. Insertion is O(log n) in number of price levels in `std::map`. easured per-order latency rises from ~120ns to ~880ns as the book scales to 10M orders — steeper than log alone, as the node-based `std::map`/`std::list` lose cache locality at scale.
+
+`benchmark_mixes` measures a random mixture of order inserts and matches, representing a more realistic workload.
+
+# Tests
+
+Unit tests use [doctest](https://github.com/doctest/doctest).
+
+Compile using ​`g++ tests.cpp orderbook.cpp -std=c++17 -o tests`
+
+Run using ​`./tests`

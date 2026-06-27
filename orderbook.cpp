@@ -253,3 +253,23 @@ double OrderBook::spread() const {
     // alternative is to to do .value()
     return *best_ask() - *best_bid();
 }
+
+int OrderBook::quantity_at(Side side, double price) const {
+    int quantity_at_level = 0;
+    if (side == Side::BUY) {
+        auto it = bids_.find(price);
+        if (it == bids_.end()) return 0;
+        const std::list<Order>& orders = it->second;
+        for (const Order& o : orders) {
+            quantity_at_level += o.quantity;
+        }
+    } else {
+        auto it = asks_.find(price);
+        if (it == asks_.end()) return 0;
+        const std::list<Order>& orders = it->second;
+        for (const Order& o : orders) {
+            quantity_at_level += o.quantity;
+        }
+    }
+    return quantity_at_level;
+}

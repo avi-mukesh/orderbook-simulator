@@ -34,6 +34,8 @@ public:
 
     double spread() const;
     void print_book() const;
+    int quantity_at(Side side, double price) const;
+
     // the const at the end means the method promises not to modify any member variables of the class
     std::optional<double> best_bid() const;
     std::optional<double> best_ask() const;
