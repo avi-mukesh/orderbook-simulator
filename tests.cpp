@@ -158,8 +158,44 @@ TEST_CASE("testing orderbook creation") {
         
         book.add_order(Order(1000, Side::BUY, 2, "BTCUSD"));
         book.add_order(Order(1100, Side::BUY, 4, "BTCUSD"));
-
+        
         bool cancelled = book.cancel_order(sell_id);
         CHECK(cancelled == false);
+    }
+    
+    SUBCASE("market order sweeps all orders on the opposite side of the book until filled") {
+        auto sell_id_1 = book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+        book.add_order(Order(1010, Side::SELL, 5, "BTCUSD"));
+        book.add_order(Order(1020, Side::SELL, 5, "BTCUSD"));
+        book.add_order(Order(1030, Side::SELL, 5, "BTCUSD"));
+        auto sell_id_5 = book.add_order(Order(1040, Side::SELL, 5, "BTCUSD"));
+
+        auto buy_id = book.add_order(Order(Side::BUY, 25, "BTCUSD"));
+        
+        auto trade_log = book.trade_log();
+
+        CHECK(trade_log.size() == 5);
+        CHECK(trade_log[0].buy_id == buy_id);
+        CHECK(trade_log[0].sell_id == sell_id_1);
+        CHECK(trade_log[0].quantity == 5);
+        CHECK(trade_log[0].fill_price == 1000);
+        
+        CHECK(trade_log[4].buy_id == buy_id);
+        CHECK(trade_log[4].sell_id == sell_id_5);
+        CHECK(trade_log[4].quantity == 5);
+        CHECK(trade_log[4].fill_price == 1040);
+    }
+
+    SUBCASE("market order, if only partially filled, doesn't rest on the book") {
+        book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+        book.add_order(Order(1010, Side::SELL, 5, "BTCUSD"));
+        book.add_order(Order(1020, Side::SELL, 5, "BTCUSD"));
+        book.add_order(Order(1030, Side::SELL, 5, "BTCUSD"));
+        book.add_order(Order(1040, Side::SELL, 5, "BTCUSD"));
+
+        book.add_order(Order(Side::BUY, 30, "BTCUSD"));
+        
+        CHECK(book.trade_log().size() == 5);
+        CHECK(book.best_bid() == std::nullopt);
     }
 }

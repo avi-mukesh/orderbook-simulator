@@ -2,3 +2,4 @@ main
 benchmark
 benchmark_insert
 benchmark_mixed
+tests
