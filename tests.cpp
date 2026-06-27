@@ -252,4 +252,81 @@ TEST_CASE("testing orderbook creation") {
         
         CHECK(book.best_bid() == std::nullopt);
     }
+
+    SUBCASE("amending the price of an order removes it from the book and readds it with a new id") {
+        auto buy_id = book.add_order(Order(1000, Side::BUY, 5, "BTCUSD"));
+        CHECK(book.quantity_at(Side::BUY, 1000) == 5);
+        CHECK(book.quantity_at(Side::BUY, 1200) == 0);
+        
+        auto new_buy_id = book.amend_order(buy_id, 1200, 5);
+        CHECK(book.quantity_at(Side::BUY, 1000) == 0);
+        CHECK(book.quantity_at(Side::BUY, 1200) == 5);
+        
+        CHECK(buy_id != new_buy_id);
+    }
+    
+    SUBCASE("amending an order buy increasing its quantity removes it from the book and readds it with a new id") {
+        auto buy_id = book.add_order(Order(1000, Side::BUY, 5, "BTCUSD"));
+        CHECK(book.quantity_at(Side::BUY, 1000) == 5);
+
+        auto new_buy_id = book.amend_order(buy_id, 1000, 8);
+        CHECK(book.quantity_at(Side::BUY, 1000) == 8);
+        
+        CHECK(buy_id != new_buy_id);
+    }
+        
+    SUBCASE("amending an order buy decreasing its quantity updates in place and keeps the same id") {
+        auto buy_id = book.add_order(Order(1000, Side::BUY, 5, "BTCUSD"));
+        CHECK(book.quantity_at(Side::BUY, 1000) == 5);
+
+        auto new_buy_id = book.amend_order(buy_id, 1000, 1);
+        CHECK(book.quantity_at(Side::BUY, 1000) == 1);
+        
+        CHECK(buy_id == new_buy_id);
+    }
+
+    SUBCASE("amending an order buy decreasing its quantity, then matching results it still being filled first") {
+        auto sell_id_1 = book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+        auto sell_id_2 = book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+        CHECK(book.quantity_at(Side::SELL, 1000) == 10);
+
+        sell_id_1 = book.amend_order(sell_id_1, 1000, 3);
+
+        book.add_order(Order(1000, Side::BUY, 5, "BTCUSD"));
+        
+        auto trade_log = book.trade_log();
+
+        CHECK(trade_log.size() == 2);
+        CHECK(trade_log[0].sell_id == sell_id_1);
+        CHECK(trade_log[1].sell_id == sell_id_2);
+    }
+
+
+    SUBCASE("amending an order buy increasing its quantity, then matching results it being filled second as it is deprioritsed") {
+        auto sell_id_1 = book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+        auto sell_id_2 = book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+        CHECK(book.quantity_at(Side::SELL, 1000) == 10);
+
+        sell_id_1 = book.amend_order(sell_id_1, 1000, 6);
+
+        book.add_order(Order(1000, Side::BUY, 10, "BTCUSD"));
+        
+        auto trade_log = book.trade_log();
+
+        CHECK(trade_log.size() == 2);
+        CHECK(trade_log[0].sell_id == sell_id_2);
+        CHECK(trade_log[1].sell_id == sell_id_1);
+    }
+
+    SUBCASE("price-time priority is respected so earlier order at a level fills first") {
+        auto sell_id_1 = book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+        auto sell_id_2 = book.add_order(Order(1000, Side::SELL, 5, "BTCUSD"));
+
+        book.add_order(Order(1000, Side::BUY, 5, "BTCUSD"));
+
+        auto trade_log = book.trade_log();
+        CHECK(trade_log.size() == 1);
+        CHECK(trade_log[0].sell_id == sell_id_1);
+        CHECK(book.quantity_at(Side::SELL, 1000) == 5);
+    }
 }
